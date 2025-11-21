@@ -52,7 +52,7 @@ const routes = [
       { path: 'create', name: 'QuizCreate', component: QuizCreateView },
       { path: 'room', name: 'QuizRoom', component: QuizRoomView },
       { path: 'my', name: 'MyQuiz', component: MyQuizView },
-      { path: '', redirect: '/dashboard/create' }, // 기본 진입시 문제집 생성으로 이동
+      { path: '', redirect: '/dashboard/my' }, // 기본 진입시 '나의 문제집'으로
     ],
   },
 
