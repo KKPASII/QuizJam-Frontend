@@ -107,7 +107,30 @@ const result = ref({
 })
 
 function normalize(str) {
-  return str ? str.trim().toLowerCase() : ''
+  return str
+    ? str
+        .toLowerCase() // 대소문자 무시
+        .replace(/\s+/g, '') // 띄어쓰기 제거
+        .replace(/[^a-z0-9가-힣]/g, '') // 특수문자 제거
+    : ''
+}
+
+function isSimilarAnswer(userAnswer, correctAnswer) {
+  const ua = normalize(userAnswer)
+  const ca = normalize(correctAnswer)
+
+  if (!ua || !ca) return false
+
+  // 완전 동일
+  if (ua === ca) return true
+
+  // 정답이 내 답안에 포함
+  if (ua.includes(ca)) return true
+
+  // 내 답안이 정답에 포함
+  if (ca.includes(ua)) return true
+
+  return false
 }
 
 async function loadDataAndGrade() {
@@ -174,8 +197,8 @@ function gradeQuiz() {
       // 객관식
       if (user === correct) status = 'correct'
     } else {
-      // 주관식: 대소문자/공백 무시
-      if (normalize(user) === normalize(correct)) status = 'correct'
+      // 단답식: 띄어쓰기/대소문자/특수문자 무시 + 유사도 체크
+      if (isSimilarAnswer(user, correct)) status = 'correct'
     }
 
     if (status === 'correct') output.correctCount++
