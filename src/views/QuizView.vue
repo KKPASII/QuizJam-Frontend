@@ -68,7 +68,7 @@
           </button>
         </div>
 
-        <!-- 주관식 -->
+        <!--단답식 -->
         <div v-else class="mt-4">
           <input
             v-model="subjectiveAnswer"
