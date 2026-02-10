@@ -196,7 +196,7 @@ const fileName = ref('')
 const selectedFile = ref(null)
 const fileInput = ref(null)
 
-const types = ['객관식', '주관식', 'OX']
+const types = ['객관식', '단답식', 'OX']
 const levels = ['쉬움', '보통', '어려움']
 
 async function handleFileUpload(e) {

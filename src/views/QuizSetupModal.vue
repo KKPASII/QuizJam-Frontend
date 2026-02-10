@@ -160,7 +160,7 @@ const fileName = ref('')
 const selectedFile = ref(null)
 const fileInput = ref(null)
 
-const types = ['객관식', '단답형', 'OX 퀴즈']
+const types = ['객관식', '단답식', 'OX 퀴즈']
 const levels = ['Easy', 'Medium', 'Hard']
 
 function handleFileUpload(e) {
