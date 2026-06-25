@@ -1,222 +1,177 @@
 <template>
-  <div class="min-h-screen flex bg-gray-50 font-['Inter','Noto_Sans_KR',sans-serif]">
-    <!-- 왼쪽 소개 영역 -->
-    <section
-      class="flex-1 bg-green-50 flex flex-col justify-center items-center text-centerpx-10 md:px-20 py-16"
-    >
-      <div class="max-w-xl">
-        <h2 class="text-3xl font-bold text-green-800 mb-2">QuizJam 🎮</h2>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
-          PDF 한 장으로 완벽한 학습
-        </h1>
-        <p class="text-gray-700 text-lg mb-10 leading-relaxed">
-          AI가 학습 자료(PDF)를 바탕으로 맞춤형 퀴즈를 자동 생성하고,<br />
-          내용 이해를 돕는 퀴즈를 만들어드려요.
-        </p>
-
-        <!-- ✅ 기능 카드 영역 -->
-        <div class="space-y-4">
-          <div
-            v-for="(item, i) in features"
-            :key="i"
-            class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex items-start gap-4 hover:shadow-md transition"
-          >
-            <div
-              class="bg-green-100 text-green-600 rounded-full h-10 w-10 flex items-center justify-center"
-            >
-              <component :is="item.icon" class="w-5 h-5" />
-            </div>
-            <div>
-              <h3 class="font-bold text-gray-800 mb-1">{{ item.title }}</h3>
-              <p class="text-sm text-gray-600">{{ item.desc }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 오른쪽 로그인 영역 -->
-    <section class="flex-1 flex flex-col justify-center items-center px-6 md:px-10 py-8 bg-white">
-      <div
-        class="w-full max-w-md bg-white rounded-2xl shadow-lg border border-gray-100 p-6 text-center"
+  <div class="min-h-screen bg-slate-50 font-['Inter','Noto_Sans_KR',sans-serif]">
+    <main class="grid min-h-screen lg:grid-cols-[1.12fr_0.88fr]">
+      <section
+        class="relative flex items-center overflow-hidden bg-[url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center px-6 py-12 sm:px-10 lg:px-16"
       >
-        <h2 class="text-2xl font-bold text-gray-800 mb-3">시작하기</h2>
+        <div class="absolute inset-0 bg-emerald-950/72"></div>
 
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/7069/7069344.png"
-          alt="login illustration"
-          class="w-24 mx-auto mb-2 object-contain"
-        />
+        <div class="relative z-10 w-full max-w-3xl text-white">
+          <div class="mb-7 inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-bold ring-1 ring-white/20 backdrop-blur">
+            <Sparkles class="h-4 w-4 text-emerald-200" />
+            PDF 기반 AI 퀴즈 플랫폼
+          </div>
 
-        <p class="text-gray-600 mb-5 text-sm">카카오 계정으로 3초 만에 시작하세요</p>
-
-        <button @click="handleLogin" class="w-full flex justify-center items-center">
-          <img
-            src="https://developers.kakao.com/tool/resource/static/img/button/login/full/ko/kakao_login_large_wide.png"
-            alt="카카오 로그인"
-            class="w-full h-auto max-w-xs"
-          />
-        </button>
-
-        <hr class="my-5 border-gray-200" />
-
-        <div class="text-gray-700 text-sm mt-6">
-          <p class="font-semibold text-gray-800 mb-3 text-center">
-            🎯 로그인하면 이런 걸 할 수 있어요
+          <h1 class="max-w-2xl text-5xl font-extrabold leading-tight sm:text-6xl">
+            QuizJam
+          </h1>
+          <p class="mt-5 max-w-2xl text-xl font-semibold leading-8 text-emerald-50">
+            학습 자료를 문제지로 만들고, 친구들과 실시간 퀴즈룸에서 바로 겨뤄보세요.
           </p>
 
-          <div class="space-y-3">
+          <div class="mt-10 grid gap-4 sm:grid-cols-3">
             <div
-              class="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-2 shadow-sm border border-gray-100"
+              v-for="stat in stats"
+              :key="stat.label"
+              class="rounded-2xl border border-white/15 bg-white/12 p-5 backdrop-blur"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4 text-indigo-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 6v6l4 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span class="text-gray-700">PDF 업로드 및 문제 생성</span>
+              <p class="text-3xl font-extrabold">{{ stat.value }}</p>
+              <p class="mt-1 text-sm font-medium text-emerald-50">{{ stat.label }}</p>
             </div>
+          </div>
 
+          <div class="mt-10 grid gap-4">
             <div
-              class="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-2 shadow-sm border border-gray-100"
+              v-for="item in features"
+              :key="item.title"
+              class="flex items-start gap-4 rounded-2xl border border-white/15 bg-white/12 p-5 shadow-xl shadow-black/10 backdrop-blur"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4 text-pink-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span class="text-gray-700">AI 맞춤형 퀴즈 생성</span>
-            </div>
-
-            <div
-              class="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-2 shadow-sm border border-gray-100"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4 text-green-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M17 20h5V10H2v10h5m10 0V14a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"
-                />
-              </svg>
-              <span class="text-gray-700">친구들과 함께 퀴즈룸 플레이</span>
-            </div>
-
-            <div
-              class="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-2 shadow-sm border border-gray-100"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4 text-yellow-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m-6 0h6m-9 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span class="text-gray-700">결과 리포트 및 학습 분석</span>
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-700">
+                <component :is="item.icon" class="h-5 w-5" />
+              </div>
+              <div>
+                <h2 class="font-bold text-white">{{ item.title }}</h2>
+                <p class="mt-1 text-sm leading-6 text-emerald-50">{{ item.desc }}</p>
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        <p class="text-xs text-gray-400 mt-5">
-          로그인 시
-          <a href="#" class="text-blue-600 hover:underline">이용약관</a> 및
-          <a href="#" class="text-blue-600 hover:underline">개인정보처리방침</a>에 동의한 것으로
-          간주됩니다.
-        </p>
-      </div>
-    </section>
+      <section class="flex items-center justify-center bg-white px-6 py-10">
+        <div class="w-full max-w-md">
+          <div class="mb-8 text-center">
+            <div class="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-50">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/7069/7069344.png"
+                alt=""
+                class="h-14 w-14 object-contain"
+              />
+            </div>
+            <h2 class="text-3xl font-extrabold text-gray-950">시작하기</h2>
+            <p class="mt-3 text-sm leading-6 text-gray-600">
+              카카오 계정으로 로그인하고 문제지 생성부터 퀴즈룸 진행까지 한 번에 관리하세요.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="mx-auto flex w-full items-center justify-center rounded-xl focus:outline-none focus-visible:outline-none"
+            @click="handleLogin"
+          >
+            <img
+              src="https://developers.kakao.com/tool/resource/static/img/button/login/full/ko/kakao_login_large_wide.png"
+              alt="카카오 로그인"
+              class="h-auto w-full"
+            />
+          </button>
+
+          <div class="my-8 flex items-center gap-3">
+            <div class="h-px flex-1 bg-gray-200"></div>
+            <span class="text-xs font-bold uppercase tracking-wide text-gray-400">QuizJam으로 할 수 있는 것</span>
+            <div class="h-px flex-1 bg-gray-200"></div>
+          </div>
+
+          <div class="grid gap-3">
+            <div
+              v-for="item in benefits"
+              :key="item.title"
+              class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3"
+            >
+              <component :is="item.icon" class="h-5 w-5 text-emerald-600" />
+              <div>
+                <p class="text-sm font-bold text-gray-900">{{ item.title }}</p>
+                <p class="text-xs text-gray-500">{{ item.desc }}</p>
+              </div>
+            </div>
+          </div>
+
+          <p class="mt-7 text-center text-xs leading-5 text-gray-400">
+            로그인하면 서비스 이용약관 및 개인정보 처리방침에 동의한 것으로 간주됩니다.
+          </p>
+        </div>
+      </section>
+    </main>
   </div>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { FileText, Users, BookOpen } from 'lucide-vue-next'
+import { BookOpen, FileText, Sparkles, Trophy, Users } from 'lucide-vue-next'
 import axios from 'axios'
 
 const router = useRouter()
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || 'http://localhost:8081'
 
-async function fetchUserInfo() {
-  try {
-    // ✅ 백엔드에서 HttpOnly 쿠키 인증 기반으로 자동 판별
-    const res = await axios.get('http://localhost:8081/api/users/me', {
-      withCredentials: true, // 쿠키 포함
-    })
-    console.log('✅ 로그인된 사용자:', res.data)
-    await router.replace('/my-quiz')
-  } catch (err) {
-    console.log('🚫 로그인되지 않음:', err.response?.status)
-  }
-}
+const stats = [
+  { value: 'PDF', label: '자료 업로드' },
+  { value: 'AI', label: '문제 자동 생성' },
+  { value: 'LIVE', label: '실시간 퀴즈룸' },
+]
 
-async function handleLogin() {
-  const response = await fetch('http://localhost:8081/api/kakao/login', {
-    credentials: 'include',
-  })
-  const kakaoLoginUrl = await response.text()
-  window.location.href = kakaoLoginUrl
-}
-
-onMounted(async () => {
-  // ✅ 페이지 진입 시, 쿠키 기반 인증 시도
-  await fetchUserInfo()
-})
-
-// ✅ 기능 카드 데이터 (요청 반영 + 실제 아이콘 적용)
 const features = [
   {
-    title: 'PDF로 만들기',
-    desc: '강의 노트, 논문 등 PDF 파일을 업로드하여 퀴즈를 생성하세요.',
+    title: 'PDF로 문제지 만들기',
+    desc: '강의 노트와 학습 자료를 올리면 객관식, 단답형, OX 문제를 생성합니다.',
     icon: FileText,
   },
   {
-    title: '퀴즈룸 만들기',
-    desc: '친구들과 함께 실시간으로 퀴즈를 풀어보세요.',
+    title: '친구들과 퀴즈룸 플레이',
+    desc: '초대 코드로 참가자를 모으고 STOMP 기반 실시간 진행을 공유합니다.',
     icon: Users,
   },
   {
-    title: '문제집 추출하기',
-    desc: '생성된 퀴즈를 문제집 형태로 다운로드하세요.',
+    title: '결과와 해설로 복습',
+    desc: '내 답안과 정답, 해설을 비교해 틀린 내용을 바로 확인합니다.',
     icon: BookOpen,
   },
 ]
-</script>
 
-<style scoped>
-@media (max-width: 768px) {
-  .min-h-screen {
-    flex-direction: column;
+const benefits = [
+  { title: '문제지 저장', desc: '생성한 퀴즈를 내 목록에서 관리', icon: BookOpen },
+  { title: '퀴즈룸 초대', desc: '코드와 링크로 빠르게 참여', icon: Users },
+  { title: '점수 경쟁', desc: '실시간 제출과 순위 확인', icon: Trophy },
+]
+
+async function handleLogin() {
+  try {
+    const response = await fetch(API_ORIGIN + '/api/kakao/login', {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to request Kakao login URL')
+    }
+
+    const kakaoLoginUrl = (await response.text()).trim()
+    if (!kakaoLoginUrl) {
+      throw new Error('Empty Kakao login URL')
+    }
+
+    window.location.assign(kakaoLoginUrl)
+  } catch (error) {
+    console.error('카카오 로그인 URL 요청 실패:', error)
+    alert('카카오 로그인 요청에 실패했습니다. 백엔드 서버와 카카오 설정을 확인해주세요.')
   }
 }
-</style>
+
+onMounted(async () => {
+  try {
+    await axios.get('/api/users/me', { withCredentials: true })
+    await router.replace('/dashboard/create')
+  } catch {
+    // 로그인 전에는 홈 화면을 유지합니다.
+  }
+})
+</script>
