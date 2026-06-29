@@ -161,10 +161,16 @@ async function updateNickname() {
 
 async function handleLogout() {
   try {
+    const response = await axios.post('/api/kakao/logout', {}, { withCredentials: true })
+    if (response.data) {
+      window.location.href = response.data
+      return
+    }
+  } catch {
     await axios.post('/api/logout', {}, { withCredentials: true })
-  } finally {
-    await router.push('/')
   }
+
+  await router.push('/')
 }
 
 onMounted(fetchUserInfo)
