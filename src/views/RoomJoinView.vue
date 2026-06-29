@@ -13,6 +13,8 @@
       <p class="mt-2 text-sm leading-6 text-gray-600">초대 코드와 닉네임을 입력하면 실시간 퀴즈에 참여합니다.</p>
 
       <div v-if="room" class="mt-5 rounded-xl bg-green-50 p-4 text-sm text-green-800">
+        <p class="font-semibold text-green-900">{{ room.quizTitle }}</p>
+        <p class="mt-1">총 {{ room.questionCount }}문제</p>
         <p class="font-bold">방을 찾았습니다.</p>
         <p class="mt-1">참가자 {{ room.participants?.length || 0 }}명 · 문제당 {{ room.questionTimeLimitSeconds }}초</p>
       </div>
