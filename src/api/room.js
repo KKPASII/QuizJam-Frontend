@@ -35,3 +35,9 @@ export function startRoom(roomId) {
     withCredentials: true,
   })
 }
+
+export function deleteRoom(roomId) {
+  return axios.delete(API_BASE_URL + '/' + roomId, {
+    withCredentials: true,
+  })
+}

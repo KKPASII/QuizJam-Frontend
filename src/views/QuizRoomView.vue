@@ -200,7 +200,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Users } from 'lucide-vue-next'
 import { getQuizAnswers } from '@/api/quiz'
-import { getRoom } from '@/api/room'
+import { deleteRoom, getRoom } from '@/api/room'
 import { createStompClient, parseMessage } from '@/api/stomp'
 
 const props = defineProps({
@@ -467,13 +467,28 @@ async function copyInviteLink() {
   }
 }
 
-function leaveRoom() {
+async function leaveRoom() {
   try {
     stompClient?.publish({ destination: '/app/room.leave', body: '{}' })
   } catch {
     // 연결 종료 중이면 별도 처리가 필요 없습니다.
   }
+  if (isHost.value) {
+    try {
+      await deleteRoom(roomId)
+      removeHostRoom()
+    } catch (error) {
+      console.error('Quiz room deletion failed:', error)
+    }
+  }
+
   router.push(isHost.value ? '/dashboard/room' : '/')
+}
+
+function removeHostRoom() {
+  const key = 'quizjam_host_rooms'
+  const saved = JSON.parse(localStorage.getItem(key) || '[]')
+  localStorage.setItem(key, JSON.stringify(saved.filter((id) => id !== roomId)))
 }
 
 onMounted(async () => {
