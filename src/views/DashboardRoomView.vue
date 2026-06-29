@@ -63,7 +63,9 @@
                 type="number"
                 min="5"
                 max="300"
+                step="1"
                 class="w-28 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+                @input="normalizeQuestionTimeLimit"
               />
               <span class="text-sm font-medium text-gray-500">초</span>
             </div>
@@ -112,6 +114,8 @@ const creating = ref(false)
 const selectedQuizId = ref(null)
 const questionTimeLimitSeconds = ref(20)
 const inviteCode = ref('')
+const MIN_QUESTION_TIME_SECONDS = 5
+const MAX_QUESTION_TIME_SECONDS = 300
 
 async function fetchQuizzes() {
   loading.value = true
@@ -136,7 +140,20 @@ function rememberHostRoom(roomId) {
   localStorage.setItem(key, JSON.stringify(next))
 }
 
+function normalizeQuestionTimeLimit() {
+  const value = Number(questionTimeLimitSeconds.value)
+  if (!Number.isFinite(value)) {
+    questionTimeLimitSeconds.value = MIN_QUESTION_TIME_SECONDS
+    return
+  }
+  questionTimeLimitSeconds.value = Math.min(
+    MAX_QUESTION_TIME_SECONDS,
+    Math.max(MIN_QUESTION_TIME_SECONDS, Math.floor(value)),
+  )
+}
+
 async function handleCreateRoom() {
+  normalizeQuestionTimeLimit()
   creating.value = true
   try {
     const response = await createRoom({
