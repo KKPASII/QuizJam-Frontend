@@ -274,12 +274,36 @@ function getJoinInfo() {
   }
 }
 
+function getStoredParticipant() {
+  try {
+    return JSON.parse(sessionStorage.getItem('quizjam_room_' + roomId + '_participant') || 'null')
+  } catch {
+    return null
+  }
+}
+
+function storeParticipant(value) {
+  if (!value?.participantId) return
+  sessionStorage.setItem(
+    'quizjam_room_' + roomId + '_participant',
+    JSON.stringify({
+      participantId: value.participantId,
+      nickname: value.nickname,
+    }),
+  )
+}
+
+function removeStoredParticipant() {
+  sessionStorage.removeItem('quizjam_room_' + roomId + '_participant')
+}
+
 async function loadRoom() {
   loading.value = true
   try {
     const response = await getRoom(roomId)
     room.value = response.data
     syncHostParticipant()
+    syncGuestParticipant()
   } catch (error) {
     console.error('방 조회 실패:', error)
     room.value = null
@@ -317,6 +341,7 @@ function subscribeRoomTopics() {
     if (event.type === 'ROOM_SNAPSHOT' || event.type === 'ROOM_STARTED') {
       room.value = event.payload
       syncHostParticipant()
+      syncGuestParticipant()
     }
   })
 
@@ -332,6 +357,7 @@ function subscribeRoomTopics() {
       participantId: response.participantId,
       nickname: response.nickname,
     }
+    storeParticipant(participant.value)
     room.value = response.room
   })
 }
@@ -343,6 +369,18 @@ function registerParticipantIfNeeded() {
     stompClient.publish({
       destination: '/app/room.host.join',
       body: JSON.stringify({ roomId: Number(roomId) }),
+    })
+    return
+  }
+  const storedParticipant = getStoredParticipant()
+  if (storedParticipant?.participantId) {
+    participant.value = storedParticipant
+    stompClient.publish({
+      destination: '/app/room.rejoin',
+      body: JSON.stringify({
+        roomId: Number(roomId),
+        participantId: storedParticipant.participantId,
+      }),
     })
     return
   }
@@ -401,6 +439,19 @@ function handleQuizEvent(event) {
   if (event.type === 'RESULT_UPDATED' || event.type === 'RESULT_FINALIZED') {
     rankings.value = event.payload?.rankings || []
     finalized.value = Boolean(event.payload?.finalized)
+  }
+}
+
+function syncGuestParticipant() {
+  if (isHost.value || participant.value || !room.value?.participants?.length) return
+  const joinInfo = getJoinInfo()
+  if (!joinInfo?.nickname) return
+  const guestParticipant = room.value.participants.find(
+    (item) => !item.host && item.nickname === joinInfo.nickname,
+  )
+  if (guestParticipant) {
+    participant.value = guestParticipant
+    storeParticipant(guestParticipant)
   }
 }
 
@@ -495,6 +546,7 @@ async function copyInviteLink() {
 async function leaveRoom() {
   leavingRoom = true
   const host = isHost.value
+  removeStoredParticipant()
   try {
     stompClient?.publish({ destination: '/app/room.leave', body: '{}' })
   } catch {
@@ -546,6 +598,7 @@ async function handleRoomClosed() {
   const host = isHost.value
   stopCountdown()
   currentQuestion.value = null
+  removeStoredParticipant()
   if (host) removeHostRoom()
   await deactivateStomp()
   router.push(host ? '/dashboard/room' : '/')

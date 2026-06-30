@@ -60,9 +60,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getRoomByInviteCode } from '@/api/room'
+import { createStompClient, parseMessage } from '@/api/stomp'
 
 const props = defineProps({
   inviteCode: {
@@ -76,6 +77,8 @@ const code = ref(props.inviteCode || '')
 const nickname = ref('')
 const room = ref(null)
 const loading = ref(false)
+let stompClient = null
+let subscribedRoomId = null
 
 async function lookupRoom() {
   if (!code.value) return
@@ -83,11 +86,45 @@ async function lookupRoom() {
   try {
     const response = await getRoomByInviteCode(code.value.toUpperCase())
     room.value = response.data
+    connectRoomUpdates(room.value.roomId)
   } catch {
     room.value = null
+    disconnectRoomUpdates()
   } finally {
     loading.value = false
   }
+}
+
+function connectRoomUpdates(roomId) {
+  if (subscribedRoomId === roomId && stompClient?.active) return
+
+  disconnectRoomUpdates()
+  subscribedRoomId = roomId
+  stompClient = createStompClient({
+    onConnect: () => {
+      stompClient.subscribe('/topic/room/' + roomId, (message) => {
+        const event = parseMessage(message)
+        if (!event) return
+        if (event.type === 'ROOM_SNAPSHOT' || event.type === 'ROOM_STARTED') {
+          room.value = event.payload
+        }
+        if (event.type === 'ROOM_CLOSED') {
+          room.value = null
+          disconnectRoomUpdates()
+        }
+      })
+    },
+    onError: (error) => {
+      console.error('Room update connection failed:', error)
+    },
+  })
+  stompClient.activate()
+}
+
+function disconnectRoomUpdates() {
+  subscribedRoomId = null
+  stompClient?.deactivate()
+  stompClient = null
 }
 
 async function enterRoom() {
@@ -123,7 +160,10 @@ async function enterRoom() {
 
 watch(code, () => {
   room.value = null
+  disconnectRoomUpdates()
 })
 
 onMounted(lookupRoom)
+
+onUnmounted(disconnectRoomUpdates)
 </script>
