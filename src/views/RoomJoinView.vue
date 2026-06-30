@@ -12,11 +12,19 @@
       <h1 class="text-2xl font-extrabold text-gray-950">퀴즈룸 입장</h1>
       <p class="mt-2 text-sm leading-6 text-gray-600">초대 코드와 닉네임을 입력하면 실시간 퀴즈에 참여합니다.</p>
 
-      <div v-if="room" class="mt-5 rounded-xl bg-green-50 p-4 text-sm text-green-800">
-        <p class="font-semibold text-green-900">{{ room.quizTitle }}</p>
-        <p class="mt-1">총 {{ room.questionCount }}문제</p>
-        <p class="font-bold">방을 찾았습니다.</p>
-        <p class="mt-1">참가자 {{ room.participants?.length || 0 }}명 · 문제당 {{ room.questionTimeLimitSeconds }}초</p>
+      <div v-if="room" class="mt-5 rounded-2xl border border-green-100 bg-green-50 p-5 text-sm text-green-900">
+        <div class="flex items-center justify-between gap-3">
+          <p class="font-bold">방을 찾았습니다.</p>
+          <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-green-700 shadow-sm">
+            참가자 {{ room.participants?.length || 0 }}명
+          </span>
+        </div>
+        <div class="mt-4 rounded-xl bg-white p-4 shadow-sm">
+          <p class="text-lg font-extrabold text-gray-950">{{ room.quizTitle }}</p>
+          <p class="mt-1 text-sm font-semibold text-gray-600">
+            총 {{ room.questionCount }}문제 · 문제 당 {{ room.questionTimeLimitSeconds }}초
+          </p>
+        </div>
       </div>
 
       <form class="mt-6 space-y-4" @submit.prevent="enterRoom">
