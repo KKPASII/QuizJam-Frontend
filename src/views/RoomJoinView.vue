@@ -62,7 +62,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { getRoomByInviteCode } from '@/api/room'
+import { getRoomByInviteCode, joinRoom } from '@/api/room'
 import { createStompClient, parseMessage } from '@/api/stomp'
 
 const props = defineProps({
@@ -146,16 +146,35 @@ async function enterRoom() {
     return
   }
 
-  sessionStorage.setItem(
-    'quizjam_room_' + room.value.roomId + '_join',
-    JSON.stringify({ inviteCode, nickname: nickname.value }),
-  )
+  loading.value = true
+  try {
+    const response = await joinRoom({ inviteCode, nickname: nickname.value })
+    const joinedRoom = response.data.room
+    const joinedParticipant = {
+      participantId: response.data.participantId,
+      nickname: response.data.nickname,
+    }
 
-  router.push({
-    name: 'room-play',
-    params: { roomId: room.value.roomId },
-    query: { inviteCode, nickname: nickname.value },
-  })
+    sessionStorage.setItem(
+      'quizjam_room_' + joinedRoom.roomId + '_join',
+      JSON.stringify({ inviteCode, nickname: joinedParticipant.nickname }),
+    )
+    sessionStorage.setItem(
+      'quizjam_room_' + joinedRoom.roomId + '_participant',
+      JSON.stringify(joinedParticipant),
+    )
+
+    room.value = joinedRoom
+    router.push({
+      name: 'room-play',
+      params: { roomId: joinedRoom.roomId },
+    })
+  } catch (error) {
+    console.error('Room join failed:', error)
+    alert('?댁쫰猷몄뿉 ?낆옣?섏? 紐삵뻽?듬땲??')
+  } finally {
+    loading.value = false
+  }
 }
 
 watch(code, () => {
