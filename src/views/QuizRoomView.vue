@@ -227,15 +227,18 @@ const submittedCount = ref(0)
 const secondsLeft = ref(0)
 const rankings = ref([])
 const finalized = ref(false)
+const roomClosed = ref(false)
 let stompClient = null
 let countdownTimer = null
 let leavingRoom = false
+let roomClosedByServer = false
 
 const isHost = computed(() => {
   const saved = JSON.parse(localStorage.getItem('quizjam_host_rooms') || '[]')
   return saved.includes(roomId)
 })
 const connectionLabel = computed(() => {
+  if (roomClosed.value) return 'Room closed. Redirecting...'
   if (!room.value) return '방 정보를 확인하고 있습니다.'
   if (!connected.value) return '실시간 서버에 연결 중입니다.'
   return '실시간 연결됨 · ' + room.value.status
@@ -307,6 +310,10 @@ function subscribeRoomTopics() {
   stompClient.subscribe('/topic/room/' + roomId, (message) => {
     const event = parseMessage(message)
     if (!event) return
+    if (event.type === 'ROOM_CLOSED') {
+      handleRoomClosed()
+      return
+    }
     if (event.type === 'ROOM_SNAPSHOT' || event.type === 'ROOM_STARTED') {
       room.value = event.payload
       syncHostParticipant()
@@ -347,6 +354,11 @@ function registerParticipantIfNeeded() {
 }
 
 function handleQuizEvent(event) {
+  if (event.type === 'ROOM_CLOSED') {
+    handleRoomClosed()
+    return
+  }
+
   if (event.type === 'QUIZ_STARTED') {
     rankings.value = []
     finalized.value = false
@@ -520,6 +532,19 @@ async function deactivateStomp() {
   }
 }
 
+async function handleRoomClosed() {
+  if (roomClosedByServer) return
+
+  roomClosedByServer = true
+  roomClosed.value = true
+  const host = isHost.value
+  stopCountdown()
+  currentQuestion.value = null
+  if (host) removeHostRoom()
+  await deactivateStomp()
+  router.push(host ? '/dashboard/room' : '/')
+}
+
 onMounted(async () => {
   await loadRoom()
   if (room.value) connectStomp()
@@ -527,7 +552,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopCountdown()
-  if (!leavingRoom) {
+  if (!leavingRoom && !roomClosedByServer) {
     try {
       stompClient?.publish({ destination: '/app/room.leave', body: '{}' })
     } catch {
