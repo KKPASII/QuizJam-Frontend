@@ -47,7 +47,7 @@
           </button>
         </section>
 
-        <section v-else-if="!currentQuestion && !rankings.length" class="py-16 text-center">
+        <section v-else-if="!currentQuestion && !questionsFinished" class="py-16 text-center">
           <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-700">
             <Users class="h-8 w-8" />
           </div>
@@ -227,6 +227,7 @@ const submittedCount = ref(0)
 const secondsLeft = ref(0)
 const rankings = ref([])
 const finalized = ref(false)
+const questionsFinished = ref(false)
 const roomClosed = ref(false)
 let stompClient = null
 let countdownTimer = null
@@ -404,12 +405,14 @@ function handleQuizEvent(event) {
   if (event.type === 'QUIZ_STARTED') {
     rankings.value = []
     finalized.value = false
+    questionsFinished.value = false
     return
   }
 
   if (event.type === 'QUESTION_OPENED') {
     const question = event.payload
     currentQuestion.value = question
+    questionsFinished.value = false
     questions.value[question.questionIndex] = question
     draftAnswer.value = answersByIndex.value[question.questionIndex] || ''
     submittedCount.value = 0
@@ -432,13 +435,33 @@ function handleQuizEvent(event) {
   if (event.type === 'QUESTIONS_FINISHED') {
     stopCountdown()
     currentQuestion.value = null
+    questionsFinished.value = true
     submitLocalScore()
     return
   }
 
-  if (event.type === 'RESULT_UPDATED' || event.type === 'RESULT_FINALIZED') {
-    rankings.value = event.payload?.rankings || []
+  if (event.type === 'SCORE_UPDATED' || event.type === 'RESULT_UPDATED' || event.type === 'RESULT_FINALIZED') {
+    applyRankings(event.payload?.rankings || [])
     finalized.value = Boolean(event.payload?.finalized)
+  }
+}
+
+function applyRankings(nextRankings) {
+  rankings.value = nextRankings
+  if (!room.value?.participants?.length) return
+
+  const scoreByParticipant = new Map(
+    nextRankings.map((ranking) => [ranking.participantId, ranking.score]),
+  )
+  room.value = {
+    ...room.value,
+    participants: room.value.participants.map((item) => {
+      if (!scoreByParticipant.has(item.participantId)) return item
+      return {
+        ...item,
+        score: scoreByParticipant.get(item.participantId),
+      }
+    }),
   }
 }
 
