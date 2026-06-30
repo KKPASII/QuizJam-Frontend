@@ -160,17 +160,25 @@ async function updateNickname() {
 }
 
 async function handleLogout() {
+  showMenu.value = false
   try {
     const response = await axios.post('/api/kakao/logout', {}, { withCredentials: true })
-    if (response.data) {
-      window.location.href = response.data
+    const logoutUrl = typeof response.data === 'string' ? response.data.trim() : ''
+    if (logoutUrl) {
+      window.location.assign(logoutUrl)
       return
     }
-  } catch {
-    await axios.post('/api/logout', {}, { withCredentials: true })
+  } catch (error) {
+    console.error('Kakao logout failed:', error)
   }
 
-  await router.push('/')
+  try {
+    await axios.post('/api/logout', {}, { withCredentials: true })
+  } catch (error) {
+    console.error('Local logout failed:', error)
+  }
+
+  await router.replace('/')
 }
 
 onMounted(fetchUserInfo)
