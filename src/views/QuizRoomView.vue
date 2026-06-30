@@ -276,6 +276,7 @@ async function loadRoom() {
   try {
     const response = await getRoom(roomId)
     room.value = response.data
+    syncHostParticipant()
   } catch (error) {
     console.error('방 조회 실패:', error)
     room.value = null
@@ -308,6 +309,7 @@ function subscribeRoomTopics() {
     if (!event) return
     if (event.type === 'ROOM_SNAPSHOT' || event.type === 'ROOM_STARTED') {
       room.value = event.payload
+      syncHostParticipant()
     }
   })
 
@@ -329,7 +331,11 @@ function subscribeRoomTopics() {
 
 function registerParticipantIfNeeded() {
   const joinInfo = getJoinInfo()
-  if (!joinInfo || isHost.value) return
+  if (isHost.value) {
+    syncHostParticipant()
+    return
+  }
+  if (!joinInfo) return
 
   stompClient.publish({
     destination: '/app/room.join',
@@ -399,6 +405,7 @@ function stopCountdown() {
 }
 
 function startGame() {
+  syncHostParticipant()
   stompClient?.publish({
     destination: '/app/room.start',
     body: JSON.stringify({ roomId: Number(roomId) }),
@@ -437,6 +444,7 @@ function isCorrect(userAnswer, correctAnswer, hasOptions) {
 }
 
 async function submitLocalScore() {
+  syncHostParticipant()
   if (!participant.value) return
 
   try {
@@ -494,6 +502,14 @@ function removeHostRoom() {
   const key = 'quizjam_host_rooms'
   const saved = JSON.parse(localStorage.getItem(key) || '[]')
   localStorage.setItem(key, JSON.stringify(saved.filter((id) => id !== roomId)))
+}
+
+function syncHostParticipant() {
+  if (!isHost.value || !room.value?.participants?.length) return
+  const hostParticipant = room.value.participants.find((item) => item.host)
+  if (hostParticipant) {
+    participant.value = hostParticipant
+  }
 }
 
 async function deactivateStomp() {
