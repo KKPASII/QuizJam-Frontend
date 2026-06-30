@@ -229,6 +229,7 @@ const rankings = ref([])
 const finalized = ref(false)
 let stompClient = null
 let countdownTimer = null
+let leavingRoom = false
 
 const isHost = computed(() => {
   const saved = JSON.parse(localStorage.getItem('quizjam_host_rooms') || '[]')
@@ -468,12 +469,16 @@ async function copyInviteLink() {
 }
 
 async function leaveRoom() {
+  leavingRoom = true
+  const host = isHost.value
   try {
     stompClient?.publish({ destination: '/app/room.leave', body: '{}' })
   } catch {
-    // 연결 종료 중이면 별도 처리가 필요 없습니다.
+    // Connection may already be closing.
   }
-  if (isHost.value) {
+  await deactivateStomp()
+
+  if (host) {
     try {
       await deleteRoom(roomId)
       removeHostRoom()
@@ -482,13 +487,21 @@ async function leaveRoom() {
     }
   }
 
-  router.push(isHost.value ? '/dashboard/room' : '/')
+  router.push(host ? '/dashboard/room' : '/')
 }
 
 function removeHostRoom() {
   const key = 'quizjam_host_rooms'
   const saved = JSON.parse(localStorage.getItem(key) || '[]')
   localStorage.setItem(key, JSON.stringify(saved.filter((id) => id !== roomId)))
+}
+
+async function deactivateStomp() {
+  try {
+    await stompClient?.deactivate()
+  } finally {
+    connected.value = false
+  }
 }
 
 onMounted(async () => {
@@ -498,10 +511,12 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopCountdown()
-  try {
-    stompClient?.publish({ destination: '/app/room.leave', body: '{}' })
-  } catch {
-    // ignore
+  if (!leavingRoom) {
+    try {
+      stompClient?.publish({ destination: '/app/room.leave', body: '{}' })
+    } catch {
+      // ignore
+    }
   }
   stompClient?.deactivate()
 })
