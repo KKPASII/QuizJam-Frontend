@@ -340,6 +340,10 @@ function registerParticipantIfNeeded() {
   const joinInfo = getJoinInfo()
   if (isHost.value) {
     syncHostParticipant()
+    stompClient.publish({
+      destination: '/app/room.host.join',
+      body: JSON.stringify({ roomId: Number(roomId) }),
+    })
     return
   }
   if (!joinInfo) return
@@ -498,7 +502,9 @@ async function leaveRoom() {
   }
   await deactivateStomp()
 
-  if (host) {
+  if (host && room.value?.status === 'WAITING') {
+    removeHostRoom()
+  } else if (host) {
     try {
       await deleteRoom(roomId)
       removeHostRoom()
